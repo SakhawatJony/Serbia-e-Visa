@@ -1,14 +1,29 @@
-import logo from './logo.svg';
+import {
+  BrowserRouter,
+  Route,
+  Router,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import './App.css';
 import { Box } from '@mui/material';
 import Home from './Pages/Home/Home';
+import VisaCopyPrint from "./Pages/EVisaPortal/VisaCopyPrint";
+
 
 function App() {
   return (
     <div>
-      <Box>
-        <Home />
-      </Box>
+      <BrowserRouter>
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/visacopy" element={<VisaCopyPrint/>} />
+        </Routes>
+
+
+
+      </BrowserRouter>
 
     </div>
   );

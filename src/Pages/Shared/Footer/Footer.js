@@ -8,11 +8,12 @@ const Footer = () => {
             <Container>
                 <Box
                     sx={{
-                        backgroundColor: "#003366",
+                        background: "linear-gradient(#11063E, #1F3082)",
                         color: "#fff",
-                        textAlign: "center",
+                        textAlign: "left",
                         py: 2,
                         mt: 4,
+                        px:"10px"
                     }}
                 >
                     <Typography variant="body2">
