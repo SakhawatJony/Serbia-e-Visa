@@ -12,10 +12,11 @@ import {
 import React, { useState } from "react";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const EVisaPortal = () => {
-  const [visaID, setVisaID] = useState(""); // State to hold the input value
+  const [visaID, setVisaID] = useState(""); 
+  const location = useLocation;// State to hold the input value
   const [error, setError] = useState(""); // State to hold error messages
 const navigate = useNavigate()
   const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar visibility
@@ -37,10 +38,12 @@ const navigate = useNavigate()
       }
 
       const data = await response.json();
+
       setError("");
+      console.log("data",data)
 
       // Navigate to /visacopy and pass data as state
-      navigate("/visacopy", { state: { visaData: data } });
+      navigate("/visacopy", { state:data  });
     } catch (error) {
       setError(error.message || "An error occurred!");
       setSnackbarOpen(true);

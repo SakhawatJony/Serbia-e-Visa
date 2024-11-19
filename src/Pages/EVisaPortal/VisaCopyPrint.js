@@ -1,14 +1,34 @@
 import { Box, Button, Container, Typography } from '@mui/material'
-import React from 'react'
+import React, { useRef } from 'react'
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
 import Header from '../Home/Header/Header';
 import Footer from '../Shared/Footer/Footer';
+import { useLocation } from 'react-router-dom';
+import { PDFDocument } from "pdf-lib";
 
 const VisaCopyPrint = () => {
-    const handlePrint = () => {
-        window.print(); // Trigger the browser's print functionality
-    };
+    const location = useLocation();
+    const data = location?.state;
+
+    console.log("Received data:", data?.imageUrl);
+ 
+    const handlePrint =async () => {
+        const pdfUrl = data?.imageUrl;
+
+        if (pdfUrl) {
+            // Open the PDF in a new tab
+            const newWindow = window.print(pdfUrl);
+            if (newWindow) {
+                newWindow.onload = () => {
+                    newWindow.print(); // Trigger print after the PDF loads
+                };
+            }
+        } else {
+            alert("No PDF URL available to print.");
+        }
+      };
+    
     return (
         <Box>
             <Header />
@@ -27,8 +47,8 @@ const VisaCopyPrint = () => {
 
                     <Box>
                         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                            <Typography sx={{ color: "black", fontWeight: 600,fontSize:"20px" }}>Your visa is ready to view!</Typography>
-                            <Button onClick={handlePrint} sx={{ color: "white", fontSize: "15px", fontWeight: 600, background: "#4064AE", textTransform: "capitalize",mt:"10px", width: "100px", height: "40px" }}>
+                            <Typography sx={{ color: "black", fontWeight: 600, fontSize: "20px" }}>Your visa is ready to view!</Typography>
+                            <Button onClick={handlePrint} sx={{ color: "white", fontSize: "15px", fontWeight: 600, background: "#4064AE", textTransform: "capitalize", mt: "10px", width: "100px", height: "40px" }}>
                                 Print
                             </Button>
                         </Box>
@@ -36,6 +56,8 @@ const VisaCopyPrint = () => {
                 </Box>
             </Container>
             <Footer />
+            {/* Hidden iframe for printing */}
+           
 
             {/* Snackbar Component */}
 
