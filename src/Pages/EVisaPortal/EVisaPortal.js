@@ -2,59 +2,66 @@ import {
   Box,
   Button,
   Container,
-  Divider,
-  Grid,
-  TextField,
+  Snackbar,
   Typography,
   Alert,
-  Snackbar,
+  CircularProgress,
 } from "@mui/material";
 import React, { useState } from "react";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const EVisaPortal = () => {
-  const [visaID, setVisaID] = useState(""); 
-  const location = useLocation;// State to hold the input value
+  const [visaID, setVisaID] = useState(""); // State to hold the input value
   const [error, setError] = useState(""); // State to hold error messages
-const navigate = useNavigate()
+  const [success, setSuccess] = useState(""); // State to hold success messages
+  const [loading, setLoading] = useState(false); // State to track loading state
   const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar visibility
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!visaID) {
-      setError("e-Visa ID is required!");
-      setSnackbarOpen(true);
+      setError("e-Visa ID is required!"); // Show error if ID is empty
+      setSuccess(""); // Clear success message
+      setSnackbarOpen(false); // Close Snackbar if there's an error
       return;
     }
+
+    setLoading(true); // Start loading spinner
 
     try {
       const response = await fetch(`https://pdf-project-mauve.vercel.app/user/${visaID}`);
 
       if (!response.ok) {
-        throw new Error("Visa is not found!");
+        throw new Error("Visa not found!");
       }
 
       const data = await response.json();
-
       setError("");
-      console.log("data",data)
+      setSuccess("Visa retrieved successfully!"); // Set success message
+      setSnackbarOpen(true);
 
-      // Navigate to /visacopy and pass data as state
-      navigate("/visacopy", { state:data  });
+      // Delay navigation to let the user see the success message
+      navigate("/visacopy", {
+        state: { data, successMessage: "Visa retrieved successfully!" }, // Pass success message along with data
+      });
     } catch (error) {
       setError(error.message || "An error occurred!");
+      setSuccess(""); // Clear success message
       setSnackbarOpen(true);
+    } finally {
+      setLoading(false); // Stop loading spinner
     }
   };
-
 
   // Function to close Snackbar
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
+
   return (
     <Box>
       {/* Main Content */}
@@ -63,8 +70,9 @@ const navigate = useNavigate()
           sx={{
             border: "1px solid #1D2D7A",
             borderRadius: "8px",
-            height: "400px",
-            px: "100px",
+            height: { xs: "auto", sm: "350px" }, // Responsive height
+            px: { xs: "20px", sm: "100px" }, // Adjust padding for small screens
+            mt: "20px",
             py: "30px",
           }}
         >
@@ -84,7 +92,7 @@ const navigate = useNavigate()
               <RiVisaFill style={{ color: "white", fontSize: "25px" }} />
             </Box>
             <Box sx={{ borderBottom: "1px solid #4064AE", width: "100%" }}>
-              <Typography sx={{ color: "#4064AE", fontSize: "22px" }}>
+              <Typography sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}>
                 Portal of Serbia e-Visa
               </Typography>
             </Box>
@@ -105,13 +113,19 @@ const navigate = useNavigate()
                   style={{
                     paddingLeft: "10px",
                     fontSize: "15px",
-                    width: "200px",
+                    width: "200px", // Make input field responsive
                     marginTop: "10px",
                     height: "26px",
                     outline: "none",
                     border: "1px solid grey",
                   }}
                 />
+                {/* Display error message if visaID is empty */}
+                {error && (
+                  <Typography sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                    {error}
+                  </Typography>
+                )}
               </Box>
               <Box
                 sx={{
@@ -135,9 +149,27 @@ const navigate = useNavigate()
                     borderRadius: "none",
                     width: "150px",
                     height: "40px",
+                    position: "relative", // To position the loader inside the button
                   }}
+                  disabled={loading} // Disable button while loading
                 >
-                  Confirm <IoIosArrowForward />
+                  {loading ? (
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        color: "white",
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        marginLeft: "-12px", // To center the spinner
+                        marginTop: "-12px", // To center the spinner
+                      }}
+                    />
+                  ) : (
+                    <>
+                      Confirm <IoIosArrowForward />
+                    </>
+                  )}
                 </Button>
               </Box>
             </form>
@@ -154,10 +186,10 @@ const navigate = useNavigate()
       >
         <Alert
           onClose={handleCloseSnackbar}
-          severity="error" // You can use "error", "success", "warning", or "info"
+          severity={error ? "error" : "success"} // Determine the type of alert
           sx={{ width: "100%" }}
         >
-          {error}
+          {error || success} {/* Show error or success message */}
         </Alert>
       </Snackbar>
     </Box>
