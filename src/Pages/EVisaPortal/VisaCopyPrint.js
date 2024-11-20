@@ -23,24 +23,35 @@ const VisaCopyPrint = () => {
 
     const handlePrint = async () => {
         const pdfUrl = data?.imageUrl;
-
+    
         if (pdfUrl) {
             try {
                 const response = await fetch(pdfUrl);
                 if (!response.ok) throw new Error("Failed to fetch PDF");
-
+    
                 const blob = await response.blob();
                 const blobUrl = URL.createObjectURL(blob);
-
-                const iframe = iframeRef.current;
-                if (iframe) {
-                    iframe.src = blobUrl;
-                    iframe.onload = () => {
-                        iframe.contentWindow.print(); 
-                    };
+    
+                // Check if it's a mobile device
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+                if (isMobile) {
+                    // Open the PDF in a new tab for mobile
+                    window.open(blobUrl, "_blank");
+                } else {
+                    // Use iframe for desktop
+                    const iframe = iframeRef.current;
+                    if (iframe) {
+                        iframe.src = blobUrl;
+                        iframe.onload = () => {
+                            setTimeout(() => {
+                                iframe.contentWindow?.print();
+                            }, 500);
+                        };
+                    }
                 }
             } catch (error) {
-                console.error("Error fetching PDF:", error);
+                console.error("Error fetching or printing PDF:", error);
                 alert("Failed to fetch and print the PDF.");
             }
         } else {
@@ -57,9 +68,9 @@ const VisaCopyPrint = () => {
                         border: "1px solid #1D2D7A",
                         borderRadius: "8px",
                         height: "100%",
-                        px: { xs: "20px", sm: "50px", md: "100px" }, // Responsive padding
+                        px: { xs: "20px", sm: "50px", md: "100px" },
                         mt: "20px",
-                        py: { xs: "20px", sm: "40px" }, // Responsive padding for small screens
+                        py: { xs: "20px", sm: "40px" },
                     }}
                 >
                     <Box
@@ -74,8 +85,8 @@ const VisaCopyPrint = () => {
                             sx={{
                                 color: "black",
                                 fontWeight: 600,
-                                fontSize: { xs: "18px", sm: "20px" }, // Responsive font size
-                                textAlign: "center", // Center text on smaller screens
+                                fontSize: { xs: "18px", sm: "20px" },
+                                textAlign: "center",
                             }}
                         >
                             Your visa is ready to view!
@@ -84,12 +95,12 @@ const VisaCopyPrint = () => {
                             onClick={handlePrint}
                             sx={{
                                 color: "white",
-                                fontSize: { xs: "12px", sm: "15px" }, // Adjust font size for small screens
+                                fontSize: { xs: "12px", sm: "15px" },
                                 fontWeight: 600,
                                 background: "#4064AE",
                                 textTransform: "capitalize",
                                 mt: "10px",
-                                width: { xs: "100px", sm: "100px" }, // Full width on mobile, fixed on larger screens
+                                width: { xs: "100px", sm: "100px" },
                                 height: "40px",
                                 borderRadius: "4px",
                             }}
@@ -101,10 +112,16 @@ const VisaCopyPrint = () => {
             </Container>
             <Footer />
 
-            {/* Hidden iframe for printing */}
             <iframe
                 ref={iframeRef}
-                style={{ display: "none" }}
+                style={{
+                    position: "absolute",
+                    top: "-1000px",
+                    left: "-1000px",
+                    width: "0px",
+                    height: "0px",
+                    border: "none",
+                }}
                 title="Print Frame"
             />
 
@@ -119,7 +136,7 @@ const VisaCopyPrint = () => {
                     severity="success"
                     sx={{ width: "100%" }}
                 >
-                    {successMessage} {/* Show the success message */}
+                    {successMessage}
                 </Alert>
             </Snackbar>
         </Box>
