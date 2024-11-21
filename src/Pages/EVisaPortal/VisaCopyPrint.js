@@ -21,26 +21,33 @@ const VisaCopyPrint = () => {
         setSnackbarOpen(false);
     };
 
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
     const handlePrint = async () => {
         const pdfUrl = data?.imageUrl;
-    
+
         if (pdfUrl) {
             try {
                 const response = await fetch(pdfUrl);
                 if (!response.ok) throw new Error("Failed to fetch PDF");
-    
+
                 const blob = await response.blob();
                 const blobUrl = URL.createObjectURL(blob);
-    
-                // Open the blob URL in an iframe for printing
-                const iframe = iframeRef.current;
-                if (iframe) {
-                    iframe.src = blobUrl; // Load the blob URL into the iframe
-                    iframe.onload = () => {
-                        setTimeout(() => {
-                            iframe.contentWindow?.print(); // Trigger the print dialog
-                        }, 500); // Add a delay for the iframe to render
-                    };
+
+                if (isMobile) {
+                    // Mobile fallback: Open in a new tab for manual print/download
+                    window.open(blobUrl, "_blank");
+                } else {
+                    // Desktop: Print using iframe
+                    const iframe = iframeRef.current;
+                    if (iframe) {
+                        iframe.src = blobUrl; // Load the blob URL into the iframe
+                        iframe.onload = () => {
+                            setTimeout(() => {
+                                iframe.contentWindow?.print(); // Trigger the print dialog
+                            }, 500); // Add a delay for the iframe to render
+                        };
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching or printing PDF:", error);
@@ -104,6 +111,7 @@ const VisaCopyPrint = () => {
             </Container>
             <Footer />
 
+            {/* Hidden iframe for desktop printing */}
             <iframe
                 ref={iframeRef}
                 style={{
