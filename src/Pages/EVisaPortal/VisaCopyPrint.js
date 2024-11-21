@@ -36,8 +36,15 @@ const VisaCopyPrint = () => {
                 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     
                 if (isMobile) {
-                    // On mobile, open the PDF in a new tab (to utilize browser's PDF viewer)
-                    window.open(blobUrl, "_blank");
+                    // On mobile, open the PDF in a new tab for better handling
+                    const newWindow = window.open(blobUrl, "_blank");
+                    if (newWindow) {
+                        newWindow.onload = () => {
+                            setTimeout(() => {
+                                newWindow.print(); // Automatically trigger print dialog
+                            }, 500);
+                        };
+                    }
                 } else {
                     // On desktop, open the PDF in an iframe for printing
                     const iframe = iframeRef.current;
