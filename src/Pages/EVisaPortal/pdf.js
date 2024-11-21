@@ -1,5 +1,5 @@
 import { Alert, Box, Button, Container, Snackbar, Typography } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../Home/Header/Header";
 import Footer from "../Shared/Footer/Footer";
 import { useLocation } from "react-router-dom";
@@ -7,60 +7,44 @@ import { useLocation } from "react-router-dom";
 const VisaCopyPrint = () => {
     const location = useLocation();
     const { data, successMessage } = location.state || {};
-    const iframeRef = useRef(null);
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {
         if (successMessage) {
             setSnackbarOpen(true);
         }
+
+      
     }, [successMessage]);
 
     const handleCloseSnackbar = () => {
         setSnackbarOpen(false);
     };
 
-    const handlePrint = async () => {
-        const pdfUrl = data?.imageUrl;
-    
-        if (pdfUrl) {
-            try {
-                const response = await fetch(pdfUrl);
-                if (!response.ok) throw new Error("Failed to fetch PDF");
-    
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-    
-                // Check if the device is mobile or desktop
-                const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    
-                if (isMobile) {
-                    // On mobile, open the PDF in a new tab (to utilize browser's PDF viewer)
-                    window.open(blobUrl, "_blank");
-                } else {
-                    // On desktop, open the PDF in an iframe for printing
-                    const iframe = iframeRef.current;
-                    if (iframe) {
-                        iframe.src = blobUrl; // Load the blob URL into the iframe
-                        iframe.onload = () => {
-                            setTimeout(() => {
-                                iframe.contentWindow?.print(); // Trigger the print dialog
-                            }, 500); // Add a delay for the iframe to render
-                        };
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching or printing PDF:", error);
-                alert("Failed to fetch and print the PDF.");
-            }
-        } else {
-            alert("No PDF URL available to print.");
-        }
-    };
-  
-    
+   const handlePrint = () => {
+    const pdfUrl = data?.imageUrl;
 
+    if (!pdfUrl) {
+        alert("No PDF URL available.");
+        return;
+    }
+
+    const embedHtml = `
+        <html>
+            <body style="margin: 0; padding: 0;">
+                <embed src="${pdfUrl}" type="application/pdf" width="100%" height="100%">
+            </body>
+        </html>
+    `;
+
+    const printWindow = window.open("", "_self"); // Open in the same tab
+    printWindow.document.write(embedHtml);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+};
     return (
         <Box>
             <Header />
@@ -110,22 +94,22 @@ const VisaCopyPrint = () => {
                             Print
                         </Button>
                     </Box>
+
+                    {/* If mobile, embed the PDF directly on the page */}
+                    {isMobileView && (
+                        <Box sx={{ marginTop: "20px", width: "100%", height: "500px" }}>
+                            <iframe
+                                id="pdfIframe"
+                                src=""
+                                width="100%"
+                                height="100%"
+                                style={{ border: "none" }}
+                            />
+                        </Box>
+                    )}
                 </Box>
             </Container>
             <Footer />
-
-            <iframe
-                ref={iframeRef}
-                style={{
-                    position: "absolute",
-                    top: "-1000px",
-                    left: "-1000px",
-                    width: "0px",
-                    height: "0px",
-                    border: "none",
-                }}
-                title="Print Frame"
-            />
 
             <Snackbar
                 open={snackbarOpen}
