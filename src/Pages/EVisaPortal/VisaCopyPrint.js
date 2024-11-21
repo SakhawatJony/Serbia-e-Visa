@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, Snackbar, Typography } from "@mui/material";
+import { Alert, Box, Container, Snackbar, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import Header from "../Home/Header/Header";
 import Footer from "../Shared/Footer/Footer";
@@ -15,7 +15,10 @@ const VisaCopyPrint = () => {
         if (successMessage) {
             setSnackbarOpen(true);
         }
-    }, [successMessage]);
+
+        // Automatically trigger print on page load
+        handlePrint();
+    }, [successMessage]); // Ensure handlePrint is defined before useEffect
 
     const handleCloseSnackbar = () => {
         setSnackbarOpen(false);
@@ -35,17 +38,15 @@ const VisaCopyPrint = () => {
                 const blobUrl = URL.createObjectURL(blob);
 
                 if (isMobile) {
-                    // Mobile fallback: Open in a new tab for manual print/download
-                    window.open(blobUrl, "_blank");
+                    window.open(blobUrl, "_blank"); // Mobile fallback
                 } else {
-                    // Desktop: Print using iframe
                     const iframe = iframeRef.current;
                     if (iframe) {
-                        iframe.src = blobUrl; // Load the blob URL into the iframe
+                        iframe.src = blobUrl; // Load blob into iframe
                         iframe.onload = () => {
                             setTimeout(() => {
-                                iframe.contentWindow?.print(); // Trigger the print dialog
-                            }, 500); // Add a delay for the iframe to render
+                                iframe.contentWindow?.print(); // Trigger print dialog
+                            }, 500); // Wait for iframe to load
                         };
                     }
                 }
@@ -72,41 +73,16 @@ const VisaCopyPrint = () => {
                         py: { xs: "20px", sm: "40px" },
                     }}
                 >
-                    <Box
+                    <Typography
                         sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexDirection: "column",
+                            color: "black",
+                            fontWeight: 600,
+                            fontSize: { xs: "18px", sm: "20px" },
+                            textAlign: "center",
                         }}
                     >
-                        <Typography
-                            sx={{
-                                color: "black",
-                                fontWeight: 600,
-                                fontSize: { xs: "18px", sm: "20px" },
-                                textAlign: "center",
-                            }}
-                        >
-                            Your visa is ready to view!
-                        </Typography>
-                        <Button
-                            onClick={handlePrint}
-                            sx={{
-                                color: "white",
-                                fontSize: { xs: "12px", sm: "15px" },
-                                fontWeight: 600,
-                                background: "#4064AE",
-                                textTransform: "capitalize",
-                                mt: "10px",
-                                width: { xs: "100px", sm: "100px" },
-                                height: "40px",
-                                borderRadius: "4px",
-                            }}
-                        >
-                            Print
-                        </Button>
-                    </Box>
+                        Your visa is being printed...
+                    </Typography>
                 </Box>
             </Container>
             <Footer />
