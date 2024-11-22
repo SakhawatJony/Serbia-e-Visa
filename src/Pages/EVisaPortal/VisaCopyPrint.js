@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Button, Box, Typography, Snackbar, Alert, Container } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, Box, Container, Snackbar, Typography, Alert } from "@mui/material";
 import Header from "../Home/Header/Header";
 import Footer from "../Shared/Footer/Footer";
 import { useLocation } from "react-router-dom";
 
 const VisaCopyPrint = () => {
   const location = useLocation();
-  const { data, successMessage } = location.state || {};
+  const { data, successMessage } = location.state || {}; // Assuming data has the imageUrl with the PDF URL
+  const iframeRef = useRef(null); // Ref to hold the iframe
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -24,33 +25,32 @@ const VisaCopyPrint = () => {
     const pdfUrl = data?.imageUrl;
 
     if (pdfUrl) {
-      try {
-        const response = await fetch(pdfUrl);
-        if (!response.ok) throw new Error("Failed to fetch PDF");
+        try {
+            const response = await fetch(pdfUrl, {
+                mode: "cors", // Explicitly set CORS mode
+            });
+            if (!response.ok) throw new Error("Failed to fetch PDF");
 
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
 
-        // Open the PDF in a new window/tab for printing
-        const printWindow = window.open(blobUrl, "_blank");
-
-        if (printWindow) {
-          printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.print(); // Trigger the print dialog after the PDF is loaded
-            }, 500);
-          };
-        } else {
-          alert("Unable to open a new window for printing. Please allow popups.");
+            const iframe = iframeRef.current;
+            if (iframe) {
+                iframe.src = blobUrl;
+                iframe.onload = () => {
+                    setTimeout(() => {
+                        iframe.contentWindow?.print();
+                    }, 500);
+                };
+            }
+        } catch (error) {
+            console.error("Error fetching or printing PDF:", error);
+            alert("Failed to fetch and print the PDF.");
         }
-      } catch (error) {
-        console.error("Error fetching or handling the PDF:", error);
-        alert("Failed to fetch and handle the PDF.");
-      }
     } else {
-      alert("No PDF URL available to print.");
+        alert("No PDF URL available to print.");
     }
-  };
+};
 
   return (
     <Box>
@@ -105,13 +105,32 @@ const VisaCopyPrint = () => {
       </Container>
       <Footer />
 
+      {/* Invisible iframe to load the PDF */}
+      <iframe
+        ref={iframeRef}
+        style={{
+          position: "absolute",
+          top: "-1000px",
+          left: "-1000px",
+          width: "0px",
+          height: "0px",
+          border: "none",
+        }}
+        title="Print PDF"
+      />
+
+      {/* Snackbar to show success message */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%" }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
           {successMessage}
         </Alert>
       </Snackbar>
