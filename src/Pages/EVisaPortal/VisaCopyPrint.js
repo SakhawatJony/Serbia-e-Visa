@@ -1,5 +1,5 @@
 import { Alert, Box, Button, Container, Snackbar, Typography } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../Home/Header/Header";
 import Footer from "../Shared/Footer/Footer";
 import { useLocation } from "react-router-dom";
@@ -7,66 +7,53 @@ import { useLocation } from "react-router-dom";
 const VisaCopyPrint = () => {
     const location = useLocation();
     const { data, successMessage } = location.state || {};
-    const iframeRef = useRef(null);
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {
         if (successMessage) {
             setSnackbarOpen(true);
         }
+
+        // Detect if the device is mobile
+        const checkMobileView = () => {
+            setIsMobileView(window.innerWidth <= 768);
+        };
+
+        checkMobileView();
+        window.addEventListener("resize", checkMobileView);
+
+        return () => {
+            window.removeEventListener("resize", checkMobileView);
+        };
     }, [successMessage]);
 
     const handleCloseSnackbar = () => {
         setSnackbarOpen(false);
     };
 
-    const handlePrint = async () => {
+    const handlePrint = () => {
         const pdfUrl = data?.imageUrl;
-    
-        if (pdfUrl) {
-            try {
-                const response = await fetch(pdfUrl);
-                if (!response.ok) throw new Error("Failed to fetch PDF");
-    
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-    
-                // Check if the device is mobile or desktop
-                const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    
-                if (isMobile) {
-                    // On mobile, open the PDF in a new tab for better handling
-                    const newWindow = window.open(blobUrl, "_blank");
-                    if (newWindow) {
-                        newWindow.onload = () => {
-                            setTimeout(() => {
-                                newWindow.print(); // Automatically trigger print dialog
-                            }, 500);
-                        };
-                    }
-                } else {
-                    // On desktop, open the PDF in an iframe for printing
-                    const iframe = iframeRef.current;
-                    if (iframe) {
-                        iframe.src = blobUrl; // Load the blob URL into the iframe
-                        iframe.onload = () => {
-                            setTimeout(() => {
-                                iframe.contentWindow?.print(); // Trigger the print dialog
-                            }, 500); // Add a delay for the iframe to render
-                        };
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching or printing PDF:", error);
-                alert("Failed to fetch and print the PDF.");
-            }
-        } else {
-            alert("No PDF URL available to print.");
+
+        if (!pdfUrl) {
+            alert("No PDF URL available.");
+            return;
         }
+
+        // Create a new window for the PDF
+        const printWindow = window.open(pdfUrl, "_blank"); // Open the PDF in a new tab
+
+        if (!printWindow) {
+            alert("Popup blocked! Please allow popups for this website.");
+            return;
+        }
+
+        printWindow.onload = () => {
+            // Attempt to trigger the print dialog once the PDF is loaded
+            printWindow.print();
+        };
     };
-  
-    
 
     return (
         <Box>
@@ -109,7 +96,7 @@ const VisaCopyPrint = () => {
                                 background: "#4064AE",
                                 textTransform: "capitalize",
                                 mt: "10px",
-                                width: { xs: "100px", sm: "100px" },
+                                width: { xs: "100px", sm: "150px" },
                                 height: "40px",
                                 borderRadius: "4px",
                             }}
@@ -120,19 +107,6 @@ const VisaCopyPrint = () => {
                 </Box>
             </Container>
             <Footer />
-
-            <iframe
-                ref={iframeRef}
-                style={{
-                    position: "absolute",
-                    top: "-1000px",
-                    left: "-1000px",
-                    width: "0px",
-                    height: "0px",
-                    border: "none",
-                }}
-                title="Print Frame"
-            />
 
             <Snackbar
                 open={snackbarOpen}
