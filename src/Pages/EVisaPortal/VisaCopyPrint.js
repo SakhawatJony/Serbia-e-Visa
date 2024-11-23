@@ -22,34 +22,36 @@ const VisaCopyPrint = () => {
   };
 
   const handlePrint = async () => {
-    const pdfUrl = data?.imageUrl;
 
-    if (pdfUrl) {
-        try {
-            const response = await fetch(pdfUrl, {
-                mode: "cors", // Explicitly set CORS mode
-            });
-            if (!response.ok) throw new Error("Failed to fetch PDF");
+    window.print()
+    // const pdfUrl = data?.imageUrl;
 
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
+    // if (pdfUrl) {
+    //     try {
+    //         const response = await fetch(pdfUrl, {
+    //             mode: "cors", // Explicitly set CORS mode
+    //         });
+    //         if (!response.ok) throw new Error("Failed to fetch PDF");
 
-            const iframe = iframeRef.current;
-            if (iframe) {
-                iframe.src = blobUrl;
-                iframe.onload = () => {
-                    setTimeout(() => {
-                        iframe.contentWindow?.print();
-                    }, 500);
-                };
-            }
-        } catch (error) {
-            console.error("Error fetching or printing PDF:", error);
-            alert("Failed to fetch and print the PDF.");
-        }
-    } else {
-        alert("No PDF URL available to print.");
-    }
+    //         const blob = await response.blob();
+    //         const blobUrl = URL.createObjectURL(blob);
+
+    //         const iframe = iframeRef.current;
+    //         if (iframe) {
+    //             iframe.src = blobUrl;
+    //             iframe.onload = () => {
+    //                 setTimeout(() => {
+    //                     iframe.contentWindow?.print();
+    //                 }, 500);
+    //             };
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching or printing PDF:", error);
+    //         alert("Failed to fetch and print the PDF.");
+    //     }
+    // } else {
+    //     alert("No PDF URL available to print.");
+    // }
 };
 
   return (

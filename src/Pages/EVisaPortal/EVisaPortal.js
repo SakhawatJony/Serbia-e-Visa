@@ -10,15 +10,14 @@ import {
 import React, { useState } from "react";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
 
 const EVisaPortal = () => {
   const [visaID, setVisaID] = useState(""); // State to hold the input value
   const [error, setError] = useState(""); // State to hold error messages
   const [success, setSuccess] = useState(""); // State to hold success messages
   const [loading, setLoading] = useState(false); // State to track loading state
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar visibility
-  const navigate = useNavigate();
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar visibility
+  const [pdfprintUrl, setPdfPrintUrl] = useState(""); // Visa image URL
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +32,9 @@ const EVisaPortal = () => {
     setLoading(true); // Start loading spinner
 
     try {
-      const response = await fetch(`https://pdf-project-mauve.vercel.app/user/${visaID}`);
+      const response = await fetch(
+        `https://pdf-project-mauve.vercel.app/user/${visaID}`
+      );
 
       if (!response.ok) {
         throw new Error("Visa not found!");
@@ -44,10 +45,7 @@ const EVisaPortal = () => {
       setSuccess("Visa retrieved successfully!"); // Set success message
       setSnackbarOpen(true);
 
-      // Delay navigation to let the user see the success message
-      navigate("/visacopy", {
-        state: { data, successMessage: "Visa retrieved successfully!" }, // Pass success message along with data
-      });
+      setPdfPrintUrl(data?.imageUrl);
     } catch (error) {
       setError(error.message || "An error occurred!");
       setSuccess(""); // Clear success message
@@ -57,139 +55,199 @@ const EVisaPortal = () => {
     }
   };
 
-  // Function to close Snackbar
+  const handlePrint = () => {
+    if (pdfprintUrl) {
+      // Create an invisible iframe
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none"; // Make the iframe invisible
+      iframe.src = pdfprintUrl; // Set the PDF URL as the iframe source
+      
+      // Wait until the iframe loads the PDF
+      iframe.onload = () => {
+        iframe.contentWindow.print(); // Trigger the print dialog
+      };
+  
+      // Append the iframe to the document body
+      document.body.appendChild(iframe);
+  
+      // Clean up: Remove the iframe after a delay
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    } else {
+      alert("No PDF URL available to print!");
+    }
+  };
+
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
 
   return (
     <Box>
-      {/* Main Content */}
       <Container>
         <Box
           sx={{
             border: "1px solid #1D2D7A",
             borderRadius: "8px",
-            height: { xs: "auto", sm: "350px" }, // Responsive height
-            px: { xs: "20px", sm: "100px" }, // Adjust padding for small screens
+            height: { xs: "auto", sm: "350px" },
+            px: { xs: "20px", sm: "100px" },
             mt: "20px",
             py: "30px",
           }}
         >
-          {/* Header Section */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <Box
-              sx={{
-                bgcolor: "#4064AE",
-                height: "45px",
-                width: "45px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <RiVisaFill style={{ color: "white", fontSize: "25px" }} />
-            </Box>
-            <Box sx={{ borderBottom: "1px solid #4064AE", width: "100%" }}>
-              <Typography sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}>
-                Portal of Serbia e-Visa
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Form Section */}
-          <Box sx={{ mt: "25px" }}>
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <label style={{ color: "black", fontSize: "15px" }}>
-                  <span style={{ color: "red", paddingRight: "5px" }}>*</span>
-                  e-Visa ID
-                </label>
-                <input
-                  value={visaID}
-                  onChange={(e) => setVisaID(e.target.value)} // Update visaID state
-                  placeholder="Enter ID here"
-                  style={{
-                    paddingLeft: "10px",
-                    fontSize: "15px",
-                    width: "200px", // Make input field responsive
-                    marginTop: "10px",
-                    height: "26px",
-                    outline: "none",
-                    border: "1px solid grey",
-                  }}
-                />
-                {/* Display error message if visaID is empty */}
-                {error && (
-                  <Typography sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
-                    {error}
-                  </Typography>
-                )}
-              </Box>
+          {pdfprintUrl ? (
+            <Box>
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "flex-end",
-                  mt: "50px",
+                  justifyContent: "center",
+                  flexDirection: "column",
                 }}
               >
-                <Button
-                  type="submit"
+                <Typography
                   sx={{
-                    background: "rgb(111 172 68)",
-                    color: "white",
-                    ":hover": {
-                      background: "#FEFEFD",
-                      color: "#4064AE",
-                      border: "1px solid #4064AE",
-                    },
-                    textTransform: "capitalize",
-                    borderRadius: "none",
-                    width: "150px",
-                    height: "40px",
-                    position: "relative", // To position the loader inside the button
+                    color: "black",
+                    fontWeight: 600,
+                    fontSize: { xs: "18px", sm: "20px" },
+                    textAlign: "center",
                   }}
-                  disabled={loading} // Disable button while loading
                 >
-                  {loading ? (
-                    <CircularProgress
-                      size={24}
-                      sx={{
-                        color: "white",
-                        position: "absolute",
-                        left: "50%",
-                        top: "50%",
-                        marginLeft: "-12px", // To center the spinner
-                        marginTop: "-12px", // To center the spinner
-                      }}
-                    />
-                  ) : (
-                    <>
-                      Confirm <IoIosArrowForward />
-                    </>
-                  )}
+                  Your visa is ready to view!
+                </Typography>
+              
+                <Button
+                  onClick={handlePrint}
+                  sx={{
+                    color: "white",
+                    fontSize: { xs: "12px", sm: "15px" },
+                    fontWeight: 600,
+                    background: "#4064AE",
+                    textTransform: "capitalize",
+                    mt: "10px",
+                    width: { xs: "100px", sm: "100px" },
+                    height: "40px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  Print
                 </Button>
               </Box>
-            </form>
-          </Box>
+            </Box>
+          ) : (
+            <Box>
+              {/* Header Section */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <Box
+                  sx={{
+                    bgcolor: "#4064AE",
+                    height: "45px",
+                    width: "45px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <RiVisaFill style={{ color: "white", fontSize: "25px" }} />
+                </Box>
+                <Box sx={{ borderBottom: "1px solid #4064AE", width: "100%" }}>
+                  <Typography
+                    sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}
+                  >
+                    Portal of Serbia e-Visa
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Form Section */}
+              <Box sx={{ mt: "25px" }}>
+                <form onSubmit={handleSubmit}>
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    <label style={{ color: "black", fontSize: "15px" }}>
+                      <span style={{ color: "red", paddingRight: "5px" }}>*</span>
+                      e-Visa ID
+                    </label>
+                    <input
+                      value={visaID}
+                      onChange={(e) => setVisaID(e.target.value)} // Update visaID state
+                      placeholder="Enter ID here"
+                      style={{
+                        paddingLeft: "10px",
+                        fontSize: "15px",
+                        width: "200px",
+                        marginTop: "10px",
+                        height: "26px",
+                        outline: "none",
+                        border: "1px solid grey",
+                      }}
+                    />
+                    {error && (
+                      <Typography
+                        sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}
+                      >
+                        {error}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      mt: "50px",
+                    }}
+                  >
+                    <Button
+                      type="submit"
+                      sx={{
+                        background: "rgb(111 172 68)",
+                        color: "white",
+                        ":hover": {
+                          background: "#FEFEFD",
+                          color: "#4064AE",
+                          border: "1px solid #4064AE",
+                        },
+                        textTransform: "capitalize",
+                        borderRadius: "none",
+                        width: "150px",
+                        height: "40px",
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <CircularProgress
+                          size={24}
+                          sx={{
+                            color: "white",
+                            position: "absolute",
+                          }}
+                        />
+                      ) : (
+                        <>
+                          Confirm <IoIosArrowForward />
+                        </>
+                      )}
+                    </Button>
+                  </Box>
+                </form>
+              </Box>
+            </Box>
+          )}
         </Box>
       </Container>
 
-      {/* Snackbar Component */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={3000} // Automatically close after 3 seconds
+        autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSnackbar}
-          severity={error ? "error" : "success"} // Determine the type of alert
+          severity={error ? "error" : "success"}
           sx={{ width: "100%" }}
         >
-          {error || success} {/* Show error or success message */}
+          {error || success}
         </Alert>
       </Snackbar>
     </Box>
