@@ -68,29 +68,19 @@ const EVisaPortal = () => {
       alert("PDF not loaded.");
       return;
     }
-  
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-  
+
     pdf.getPage(pageNumber).then((page) => {
-      const scale = 1; // Set scale to 1 for original size or adjust to fit A4
-      const viewport = page.getViewport({ scale: scale });
-  
-      // A4 size in pixels (at 72 DPI)
-      const a4Width = 595;
-      const a4Height = 842;
-  
-      // Calculate the scaling factor to fit the content to A4 size
-      const scaleFactor = Math.min(a4Width / viewport.width, a4Height / viewport.height);
-  
-      // Set canvas size to match A4 dimensions at the scale factor
-      canvas.width = a4Width * scaleFactor;
-      canvas.height = a4Height * scaleFactor;
-  
+      const viewport = page.getViewport({ scale: 1 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
       // Render PDF page to canvas
       page.render({
         canvasContext: ctx,
-        viewport: page.getViewport({ scale: scaleFactor }),
+        viewport: viewport,
       }).promise.then(() => {
         // After rendering the page to the canvas, trigger print
         const printWindow = window.open('', '_blank');
