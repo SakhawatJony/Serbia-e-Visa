@@ -73,31 +73,30 @@ const EVisaPortal = () => {
     const ctx = canvas.getContext('2d');
   
     pdf.getPage(pageNumber).then((page) => {
-      const scale = 1; // Set scale to 1 for original size or adjust to fit A4
-      const viewport = page.getViewport({ scale: scale });
+      // A4 dimensions in points (1 point = 1/72 inch)
+      const a4Width = 595; // A4 width at 72 DPI
+      const a4Height = 842; // A4 height at 72 DPI
   
-      // A4 size in pixels (at 72 DPI)
-      const a4Width = 595;
-      const a4Height = 842;
-  
-      // Calculate the scaling factor to fit the content to A4 size
+      // Get viewport to calculate scaling factor
+      const viewport = page.getViewport({ scale: 1 });
       const scaleFactor = Math.min(a4Width / viewport.width, a4Height / viewport.height);
   
-      // Set canvas size to match A4 dimensions at the scale factor
-      canvas.width = a4Width * scaleFactor;
-      canvas.height = a4Height * scaleFactor;
+      // Set canvas size to A4 dimensions
+      canvas.width = a4Width;
+      canvas.height = a4Height;
   
       // Render PDF page to canvas
       page.render({
         canvasContext: ctx,
         viewport: page.getViewport({ scale: scaleFactor }),
       }).promise.then(() => {
-        // After rendering the page to the canvas, trigger print
+        // Open a new tab/window for printing
         const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print PDF</title></head><body>');
-        printWindow.document.write('<img src="' + canvas.toDataURL() + '" />');
+        printWindow.document.write('<html><head><title>Print PDF</title></head><body style="margin:0;">');
+        printWindow.document.write('<img src="' + canvas.toDataURL('image/png') + '" style="width:100%;height:auto;" />');
         printWindow.document.write('</body></html>');
         printWindow.document.close();
+        printWindow.focus();
         printWindow.print();
       });
     });
