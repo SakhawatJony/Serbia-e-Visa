@@ -31,7 +31,6 @@ const EVisaPortal = () => {
       }
   
       const data = await response.json();
-      console.log(data?.imageUrl);
       setPdfUrl(data?.imageUrl); 
       setError("");
       setSuccess("Visa retrieved successfully!");
@@ -44,7 +43,7 @@ const EVisaPortal = () => {
       setLoading(false);
     }
   }
-console.log(pdfUrl)
+
   const handlePrint = () => {
     if (pdfUrl) {
       // Create an iframe element
@@ -54,18 +53,18 @@ console.log(pdfUrl)
       iframe.style.height = "0px";
       iframe.style.border = "none";
   
-      // Set the source to the PDF URL
+      
       iframe.src = pdfUrl;
   
-      // Append the iframe to the document body
+      
       document.body.appendChild(iframe);
   
-      // Wait for the iframe to load before triggering print
+      
       iframe.onload = () => {
-        iframe.contentWindow?.focus(); // Focus the iframe
-        iframe.contentWindow?.print(); // Trigger the print dialog
-        document.body.removeChild(iframe); // Clean up after printing
-      };
+        iframe.contentWindow?.focus(); 
+        iframe.contentWindow?.print(); 
+       // document.body.removeChild(iframe); 
+      }
     } else {
       alert("No PDF URL available to print!");
     }
