@@ -24,14 +24,15 @@ const EVisaPortal = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`https://your-backend-api.com/pdf/${visaID}`);
-
+      const response = await fetch(`https://pdf-project-mauve.vercel.app/user/${visaID}`);
+  
       if (!response.ok) {
         throw new Error("Visa not found!");
       }
-
+  
       const data = await response.json();
-      setPdfUrl(data?.pdfUrl); // URL of the PDF to be printed
+      console.log(data?.imageUrl);
+      setPdfUrl(data?.imageUrl); 
       setError("");
       setSuccess("Visa retrieved successfully!");
       setSnackbarOpen(true);
@@ -42,23 +43,29 @@ const EVisaPortal = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }
+console.log(pdfUrl)
   const handlePrint = () => {
     if (pdfUrl) {
-      // Create an embed tag and append it to the body to trigger print
-      const embed = document.createElement("embed");
-      embed.style.position = "absolute";
-      embed.style.width = "0px";
-      embed.style.height = "0px";
-      embed.style.border = "none";
-      embed.src = pdfUrl;
-      embed.type = "application/pdf";
-
-      document.body.appendChild(embed);
-
-      // Trigger the print dialog
-      window.print();
+      // Create an iframe element
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "absolute";
+      iframe.style.width = "0px";
+      iframe.style.height = "0px";
+      iframe.style.border = "none";
+  
+      // Set the source to the PDF URL
+      iframe.src = pdfUrl;
+  
+      // Append the iframe to the document body
+      document.body.appendChild(iframe);
+  
+      // Wait for the iframe to load before triggering print
+      iframe.onload = () => {
+        iframe.contentWindow?.focus(); // Focus the iframe
+        iframe.contentWindow?.print(); // Trigger the print dialog
+        document.body.removeChild(iframe); // Clean up after printing
+      };
     } else {
       alert("No PDF URL available to print!");
     }
