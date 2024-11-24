@@ -1,77 +1,64 @@
-import {
-  Box,
-  Button,
-  Container,
-  Snackbar,
-  Typography,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
 import React, { useState } from "react";
+import { Box, Button, Container, Snackbar, Typography, Alert, CircularProgress } from "@mui/material";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
 
 const EVisaPortal = () => {
-  const [visaID, setVisaID] = useState(""); // State to hold the input value
-  const [error, setError] = useState(""); // State to hold error messages
-  const [success, setSuccess] = useState(""); // State to hold success messages
-  const [loading, setLoading] = useState(false); // State to track loading state
+  const [visaID, setVisaID] = useState(""); // e-Visa ID input
+  const [error, setError] = useState(""); // Error message
+  const [success, setSuccess] = useState(""); // Success message
+  const [loading, setLoading] = useState(false); // Loading state
   const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar visibility
-  const [pdfprintUrl, setPdfPrintUrl] = useState(""); // Visa image URL
+  const [pdfUrl, setPdfUrl] = useState(""); // PDF URL received from backend
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!visaID) {
-      setError("e-Visa ID is required!"); // Show error if ID is empty
-      setSuccess(""); // Clear success message
-      setSnackbarOpen(false); // Close Snackbar if there's an error
+      setError("e-Visa ID is required!");
+      setSuccess("");
+      setSnackbarOpen(false);
       return;
     }
 
-    setLoading(true); // Start loading spinner
+    setLoading(true);
 
     try {
-      const response = await fetch(
-        `https://pdf-project-mauve.vercel.app/user/${visaID}`
-      );
+      const response = await fetch(`https://your-backend-api.com/pdf/${visaID}`);
 
       if (!response.ok) {
         throw new Error("Visa not found!");
       }
 
       const data = await response.json();
+      setPdfUrl(data?.pdfUrl); // URL of the PDF to be printed
       setError("");
-      setSuccess("Visa retrieved successfully!"); // Set success message
+      setSuccess("Visa retrieved successfully!");
       setSnackbarOpen(true);
-
-      setPdfPrintUrl(data?.imageUrl);
     } catch (error) {
       setError(error.message || "An error occurred!");
-      setSuccess(""); // Clear success message
+      setSuccess("");
       setSnackbarOpen(true);
     } finally {
-      setLoading(false); // Stop loading spinner
+      setLoading(false);
     }
   };
 
   const handlePrint = () => {
-    if (pdfprintUrl) {
-      // Create an invisible iframe
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none"; // Make the iframe invisible
-      iframe.src = pdfprintUrl; // Set the PDF URL as the iframe source
-      
-      // Wait until the iframe loads the PDF
-      iframe.onload = () => {
-        iframe.contentWindow.print(); // Trigger the print dialog
-      };
-  
-      // Append the iframe to the document body
-      document.body.appendChild(iframe);
-  
-      // Clean up: Remove the iframe after a delay
-      setTimeout(() => document.body.removeChild(iframe), 1000);
+    if (pdfUrl) {
+      // Create an embed tag and append it to the body to trigger print
+      const embed = document.createElement("embed");
+      embed.style.position = "absolute";
+      embed.style.width = "0px";
+      embed.style.height = "0px";
+      embed.style.border = "none";
+      embed.src = pdfUrl;
+      embed.type = "application/pdf";
+
+      document.body.appendChild(embed);
+
+      // Trigger the print dialog
+      window.print();
     } else {
       alert("No PDF URL available to print!");
     }
@@ -84,37 +71,13 @@ const EVisaPortal = () => {
   return (
     <Box>
       <Container>
-        <Box
-          sx={{
-            border: "1px solid #1D2D7A",
-            borderRadius: "8px",
-            height: { xs: "auto", sm: "350px" },
-            px: { xs: "20px", sm: "100px" },
-            mt: "20px",
-            py: "30px",
-          }}
-        >
-          {pdfprintUrl ? (
+        <Box sx={{ border: "1px solid #1D2D7A", borderRadius: "8px", height: { xs: "auto", sm: "350px" }, px: { xs: "20px", sm: "100px" }, mt: "20px", py: "30px" }}>
+          {pdfUrl ? (
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "black",
-                    fontWeight: 600,
-                    fontSize: { xs: "18px", sm: "20px" },
-                    textAlign: "center",
-                  }}
-                >
-                  Your visa is ready to view!
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                <Typography sx={{ color: "black", fontWeight: 600, fontSize: { xs: "18px", sm: "20px" }, textAlign: "center" }}>
+                  Your visa is ready to print!
                 </Typography>
-              
                 <Button
                   onClick={handlePrint}
                   sx={{
@@ -137,23 +100,11 @@ const EVisaPortal = () => {
             <Box>
               {/* Header Section */}
               <Box sx={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                <Box
-                  sx={{
-                    bgcolor: "#4064AE",
-                    height: "45px",
-                    width: "45px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <Box sx={{ bgcolor: "#4064AE", height: "45px", width: "45px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <RiVisaFill style={{ color: "white", fontSize: "25px" }} />
                 </Box>
                 <Box sx={{ borderBottom: "1px solid #4064AE", width: "100%" }}>
-                  <Typography
-                    sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}
-                  >
+                  <Typography sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}>
                     Portal of Serbia e-Visa
                   </Typography>
                 </Box>
@@ -182,21 +133,12 @@ const EVisaPortal = () => {
                       }}
                     />
                     {error && (
-                      <Typography
-                        sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}
-                      >
+                      <Typography sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
                         {error}
                       </Typography>
                     )}
                   </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "flex-end",
-                      mt: "50px",
-                    }}
-                  >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", mt: "50px" }}>
                     <Button
                       type="submit"
                       sx={{
@@ -215,13 +157,7 @@ const EVisaPortal = () => {
                       disabled={loading}
                     >
                       {loading ? (
-                        <CircularProgress
-                          size={24}
-                          sx={{
-                            color: "white",
-                            position: "absolute",
-                          }}
-                        />
+                        <CircularProgress size={24} sx={{ color: "white", position: "absolute" }} />
                       ) : (
                         <>
                           Confirm <IoIosArrowForward />
@@ -236,17 +172,8 @@ const EVisaPortal = () => {
         </Box>
       </Container>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={error ? "error" : "success"}
-          sx={{ width: "100%" }}
-        >
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+        <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} sx={{ width: "100%" }}>
           {error || success}
         </Alert>
       </Snackbar>
