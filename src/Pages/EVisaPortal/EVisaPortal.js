@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Container, Snackbar, Typography, Alert, CircularProgress } from "@mui/material";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
@@ -10,7 +10,25 @@ const EVisaPortal = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar visibility
   const [pdfUrl, setPdfUrl] = useState(""); // PDF URL received from backend
+  const [pdf, setPdf] = useState(null); // PDF instance
+  const [pageNumber, setPageNumber] = useState(1); // Page number to display
 
+  // Load the PDF when the pdfUrl changes
+  useEffect(() => {
+    const loadPdf = async () => {
+      if (!pdfUrl) return;
+      try {
+        const pdfDoc = await window.pdfjsLib.getDocument(pdfUrl).promise;
+        setPdf(pdfDoc);
+      } catch (error) {
+        console.error("Error loading PDF:", error);
+      }
+    };
+
+    loadPdf();
+  }, [pdfUrl]);
+
+  // Handle form submit to fetch the PDF URL
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -25,13 +43,13 @@ const EVisaPortal = () => {
 
     try {
       const response = await fetch(`https://pdf-project-mauve.vercel.app/user/${visaID}`);
-  
+
       if (!response.ok) {
         throw new Error("Visa not found!");
       }
-  
+
       const data = await response.json();
-      setPdfUrl(data?.imageUrl); 
+      setPdfUrl(data?.imageUrl);
       setError("");
       setSuccess("Visa retrieved successfully!");
       setSnackbarOpen(true);
@@ -42,49 +60,37 @@ const EVisaPortal = () => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  console.log("received print PDF URL is ", pdfUrl)
-
-  const handlePrint = async () => {
-    if (!pdfUrl) {
-      alert("No PDF URL available to print!");
+  // Handle PDF page rendering and printing
+  const handlePrint = () => {
+    if (!pdf) {
+      alert("PDF not loaded.");
       return;
     }
 
-    try {
-      // Fetch the PDF file
-      const response = await fetch(pdfUrl);
-      if (!response.ok) throw new Error("Failed to fetch PDF!");
-  
-      const blob = await response.blob(); // Convert response to a Blob
-      const blobUrl = URL.createObjectURL(blob); // Create a temporary URL for the Blob
-  
-      // Create an invisible iframe to load the Blob
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "absolute";
-      iframe.style.width = "0px";
-      iframe.style.height = "0px";
-      iframe.style.border = "none";
-  
-      iframe.src = blobUrl; // Set the iframe source to the Blob URL
-      document.body.appendChild(iframe);
-  
-      // Wait for the iframe to load and trigger print dialog
-      iframe.onload = () => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-  
-        // Cleanup: Remove iframe and revoke Blob URL after printing
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(blobUrl);
-        }, 1000);
-      };
-    } catch (error) {
-      console.error("Error fetching or printing PDF:", error);
-      alert("Failed to load PDF for printing.");
-    }
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    pdf.getPage(pageNumber).then((page) => {
+      const viewport = page.getViewport({ scale: 1 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      // Render PDF page to canvas
+      page.render({
+        canvasContext: ctx,
+        viewport: viewport,
+      }).promise.then(() => {
+        // After rendering the page to the canvas, trigger print
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print PDF</title></head><body>');
+        printWindow.document.write('<img src="' + canvas.toDataURL() + '" />');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+      });
+    });
   };
 
   const handleCloseSnackbar = () => {
