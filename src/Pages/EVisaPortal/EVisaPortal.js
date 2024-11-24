@@ -44,32 +44,48 @@ const EVisaPortal = () => {
     }
   }
 
-  const handlePrint = () => {
-    if (pdfUrl) {
-      // Create an iframe element
+  console.log("receved print a backend pderurl is ",pdfUrl)
+
+  const handlePrint = async () => {
+    if (!pdfUrl) {
+      alert("No PDF URL available to print!");
+      return;
+    }
+  
+    try {
+      // Fetch the PDF file
+      const response = await fetch(pdfUrl);
+      if (!response.ok) throw new Error("Failed to fetch PDF!");
+  
+      const blob = await response.blob(); // Convert response to a Blob
+      const blobUrl = URL.createObjectURL(blob); // Create a temporary URL for the Blob
+  
+      // Create an invisible iframe to load the Blob
       const iframe = document.createElement("iframe");
       iframe.style.position = "absolute";
       iframe.style.width = "0px";
       iframe.style.height = "0px";
       iframe.style.border = "none";
   
-      
-      iframe.src = pdfUrl;
-  
-      
+      iframe.src = blobUrl; // Set the iframe source to the Blob URL
       document.body.appendChild(iframe);
   
-      
+      // Wait for the iframe to load and trigger print dialog
       iframe.onload = () => {
-        iframe.contentWindow?.focus(); 
-        iframe.contentWindow?.print(); 
-       // document.body.removeChild(iframe); 
-      }
-    } else {
-      alert("No PDF URL available to print!");
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+  
+        // Cleanup: Remove iframe and revoke Blob URL after printing
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(blobUrl);
+        }, 1000);
+      };
+    } catch (error) {
+      console.error("Error fetching or printing PDF:", error);
+      alert("Failed to load PDF for printing.");
     }
   };
-
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
