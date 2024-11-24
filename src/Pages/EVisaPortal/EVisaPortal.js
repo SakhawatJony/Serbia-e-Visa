@@ -44,14 +44,14 @@ const EVisaPortal = () => {
     }
   }
 
-  console.log("receved print a backend pderurl is ",pdfUrl)
+  console.log("received print PDF URL is ", pdfUrl)
 
   const handlePrint = async () => {
     if (!pdfUrl) {
       alert("No PDF URL available to print!");
       return;
     }
-  
+
     try {
       // Fetch the PDF file
       const response = await fetch(pdfUrl);
@@ -86,6 +86,7 @@ const EVisaPortal = () => {
       alert("Failed to load PDF for printing.");
     }
   };
+
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
