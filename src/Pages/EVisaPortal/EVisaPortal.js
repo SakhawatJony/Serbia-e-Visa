@@ -90,14 +90,33 @@ const EVisaPortal = () => {
         canvasContext: ctx,
         viewport: page.getViewport({ scale: scaleFactor }),
       }).promise.then(() => {
-        // Open a new tab/window for printing
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print PDF</title></head><body style="margin:0;">');
-        printWindow.document.write('<img src="' + canvas.toDataURL('image/png') + '" style="width:100%;height:auto;" />');
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
+        // Convert canvas to image
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+  
+        // Add image to the body temporarily for printing
+        const printArea = document.createElement('div');
+        printArea.style.position = 'absolute';
+        printArea.style.top = '0';
+        printArea.style.left = '0';
+        printArea.style.width = '100%';
+        printArea.style.height = '100%';
+        printArea.style.zIndex = '9999';
+        printArea.style.backgroundColor = 'white';
+        printArea.appendChild(img);
+  
+        document.body.appendChild(printArea);
+  
+        // Trigger print
+        window.print();
+  
+        // Clean up after printing
+        setTimeout(() => {
+          document.body.removeChild(printArea);
+        }, 1000);
       });
     });
   };
