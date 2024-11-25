@@ -109,7 +109,7 @@ const EVisaPortal = () => {
   return (
     <Box>
       <Container>
-        <Box sx={{ border: "1px solid #1D2D7A", borderRadius: "8px", height: { xs: "auto", sm: "350px" }, px: { xs: "20px", sm: "100px" }, mt: "20px", py: "30px" }}>
+        <Box sx={{ border: "1px solid #1D2D7A", borderRadius: "8px", height: { xs: "auto", sm: "auto" }, px: { xs: "20px", sm: "100px" }, mt: "20px", py: "30px" }}>
           {pdfUrl ? (
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
