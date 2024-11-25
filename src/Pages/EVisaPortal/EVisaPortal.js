@@ -73,34 +73,57 @@ const EVisaPortal = () => {
     const ctx = canvas.getContext('2d');
   
     pdf.getPage(pageNumber).then((page) => {
-      // A4 dimensions in points (1 point = 1/72 inch)
-      const a4Width = 595; // A4 width at 72 DPI
-      const a4Height = 842; // A4 height at 72 DPI
-  
-      // Get viewport to calculate scaling factor
       const viewport = page.getViewport({ scale: 1 });
-      const scaleFactor = Math.min(a4Width / viewport.width, a4Height / viewport.height);
-  
-      // Set canvas size to A4 dimensions
-      canvas.width = a4Width;
-      canvas.height = a4Height;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
   
       // Render PDF page to canvas
       page.render({
         canvasContext: ctx,
-        viewport: page.getViewport({ scale: scaleFactor }),
+        viewport: viewport,
       }).promise.then(() => {
-        // Open a new tab/window for printing
+        // After rendering the page to the canvas, scale it to fit the print page
         const printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print PDF</title></head><body style="margin:0;">');
-        printWindow.document.write('<img src="' + canvas.toDataURL('image/png') + '" style="width:100%;height:auto;" />');
-        printWindow.document.write('</body></html>');
+        const imgData = canvas.toDataURL();
+  
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print PDF</title>
+              <style>
+                body {
+                  margin: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                }
+                img {
+                  width: 100%;
+                  height: auto;
+                  page-break-before: avoid;
+                  page-break-after: avoid;
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${imgData}" />
+            </body>
+          </html>
+        `);
+  
         printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
+  
+        // Wait for the image to load before triggering print
+        printWindow.onload = () => {
+          printWindow.print();
+          printWindow.onafterprint = () => {
+            printWindow.close();
+          };
+        };
       });
     });
   };
+  
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
