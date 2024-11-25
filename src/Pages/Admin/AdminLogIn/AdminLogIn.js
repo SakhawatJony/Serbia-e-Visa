@@ -12,6 +12,8 @@ import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+
 
 
 
@@ -57,20 +59,20 @@ const AdminLogIn = () => {
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     setLoading(true);
     setErrors({ email: "", password: "" });
-
+  
     const requestBody = {
       email: adminInfo.email,
       password: adminInfo.password,
     };
-
+  
     try {
       const response = await fetch(
-        "https://flyitsearch-backend-api-539319089408.asia-east1.run.app/auth/signInAdmin",
+        "https://pdf-project-mauve.vercel.app/auth/signInAdmin",
         {
           method: "POST",
           headers: {
@@ -79,7 +81,7 @@ const AdminLogIn = () => {
           body: JSON.stringify(requestBody),
         }
       );
-
+  
       if (!response.ok) {
         const data = await response.json();
         if (data?.message === "Invalid password") {
@@ -87,20 +89,36 @@ const AdminLogIn = () => {
             ...prevErrors,
             password: "Invalid password",
           }));
-        } else {
-          
+        } else if (data?.message === "Invalid email") {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            email: "Invalid email",
+          }));
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
-   
-
-      // Navigate to the admin dashboard
-      navigate("/admin/dashboard");
+  
+      // Save token securely to localStorage
+     
+        localStorage.setItem("adminToken", data?.access_token);
+        setLoginSuccess(true);
+  
+        // Show SweetAlert2 success message
+        Swal.fire({
+          title: "Login Successful",
+          text: "Welcome to the Admin Dashboard!",
+          icon: "success",
+          confirmButtonText: "OK",
+          timer: 3000, // Optional: Auto close after 3 seconds
+        }).then(() => {
+          // Navigate to the admin dashboard after the alert is closed
+          navigate("/admin/dashboard");
+        });
+      
     } catch (error) {
       console.error("Login failed:", error);
-    
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,8 @@ import VisaCopyPrint from "./Pages/EVisaPortal/VisaCopyPrint";
 import AdminLogIn from "./Pages/Admin/AdminLogIn/AdminLogIn";
 import AdminSidebar from "./Pages/Admin/AdminSidebar";
 import Dashboard from "./Pages/Admin/Dashboard";
+import AllPdf from "./Pages/Admin/AdminLogIn/AllPdf";
+import AddNewPdf from "./Pages/Admin/AdminLogIn/AddNewPdf";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/login" element={<AdminLogIn/>} />
           <Route path="/admin" element={<AdminSidebar />}>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="all" element={<AllPdf/>} />
+            <Route path="allnew" element={<AddNewPdf/>} />
           </Route>
         </Routes>
       </BrowserRouter>

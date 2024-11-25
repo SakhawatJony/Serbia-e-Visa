@@ -354,7 +354,7 @@ const AdminSidebar = () => {
                         </Link>
 
                         <Link
-                            to="manage"
+                            to="all"
                             style={{
                                 display: "block",
                                 marginBottom: "10px",
