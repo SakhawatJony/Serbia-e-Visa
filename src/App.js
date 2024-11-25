@@ -5,26 +5,24 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
-import './App.css';
-import { Box } from '@mui/material';
-import Home from './Pages/Home/Home';
+import "./App.css";
+import { Box } from "@mui/material";
+import Home from "./Pages/Home/Home";
 import VisaCopyPrint from "./Pages/EVisaPortal/VisaCopyPrint";
-
+import AdminLogIn from "./Pages/Admin/AdminLogIn/AdminLogIn";
 
 function App() {
   return (
     <div>
       <BrowserRouter>
-
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/visacopy" element={<VisaCopyPrint/>} />
+          <Route path="/login" element={<AdminLogIn/>} />
+          {/* <Route path="/admin" element={<AdminSidebar />}>
+            <Route path="dashboard" element={<Dashboard />} />
+          </Route> */}
         </Routes>
-
-
-
       </BrowserRouter>
-
     </div>
   );
 }
