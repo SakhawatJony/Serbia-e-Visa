@@ -99,28 +99,44 @@ const EVisaPortal = () => {
           viewport: page.getViewport({ scale: printWidth / viewport.width }), // Scale viewport to fit canvas width
         })
         .promise.then(() => {
-          // Create the print window
-          const printWindow = window.open("", "_blank");
+          // Create a hidden iframe for printing
+          const iframe = document.createElement("iframe");
+          iframe.style.position = "absolute";
+          iframe.style.width = "0";
+          iframe.style.height = "0";
+          iframe.style.border = "none";
   
-          printWindow.document.write(`
+          document.body.appendChild(iframe);
+  
+          // Add the content to the iframe
+          const iframeDoc = iframe.contentWindow.document;
+          iframeDoc.open();
+          iframeDoc.write(`
             <html>
-              <head><title>Print PDF</title></head>
-              <body>
+              <head>
+                <title>Print PDF</title>
+              </head>
+              <body style="margin: 0; text-align: center;">
                 <img src="${canvas.toDataURL()}" style="width:100%; height:auto;" />
               </body>
             </html>
           `);
+          iframeDoc.close();
   
-          printWindow.document.close();
+          // Trigger the print dialog from the iframe
+          iframe.onload = () => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
   
-          // Add onload event to trigger print after content is fully loaded
-          printWindow.onload = () => {
-            printWindow.focus(); // Focus on the print window
-            printWindow.print(); // Trigger the print dialog
+            // Remove the iframe after printing
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+            }, 1000);
           };
         });
     });
   };
+  
   
   
 
