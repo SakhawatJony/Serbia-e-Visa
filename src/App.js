@@ -21,7 +21,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<AdminLogIn/>} />
+          <Route path="/admin/login" element={<AdminLogIn/>} />
           <Route path="/admin" element={<AdminSidebar />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="all" element={<AllPdf/>} />

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Snackbar, Typography, Alert, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  Snackbar,
+  Typography,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
 
@@ -42,7 +50,9 @@ const EVisaPortal = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`https://pdf-project-mauve.vercel.app/user/${visaID}`);
+      const response = await fetch(
+        `https://pdf-project-mauve.vercel.app/user/${visaID}`
+      );
 
       if (!response.ok) {
         throw new Error("Visa not found!");
@@ -69,60 +79,49 @@ const EVisaPortal = () => {
       return;
     }
   
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
   
     pdf.getPage(pageNumber).then((page) => {
       const viewport = page.getViewport({ scale: 1 });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
   
-      // Render PDF page to canvas
-      page.render({
-        canvasContext: ctx,
-        viewport: viewport,
-      }).promise.then(() => {
-        // After rendering the page to the canvas, scale it to fit the print page
-        const printWindow = window.open('', '_blank');
-        const imgData = canvas.toDataURL();
+      // Define the dimensions for the printed page
+      const printWidth = 800; // Fixed width in pixels
+      const printHeight = (viewport.height / viewport.width) * printWidth; // Maintain aspect ratio
   
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Print PDF</title>
-              <style>
-                body {
-                  margin: 0;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                }
-                img {
-                  width: 100%;
-                  height: auto;
-                  page-break-before: avoid;
-                  page-break-after: avoid;
-                }
-              </style>
-            </head>
-            <body>
-              <img src="${imgData}" />
-            </body>
-          </html>
-        `);
+      canvas.width = printWidth;
+      canvas.height = printHeight;
   
-        printWindow.document.close();
+      // Render the PDF page to the canvas
+      page
+        .render({
+          canvasContext: ctx,
+          viewport: page.getViewport({ scale: printWidth / viewport.width }), // Scale viewport to fit canvas width
+        })
+        .promise.then(() => {
+          // Create the print window
+          const printWindow = window.open("", "_blank");
   
-        // Wait for the image to load before triggering print
-        printWindow.onload = () => {
-          printWindow.print();
-          printWindow.onafterprint = () => {
-            printWindow.close();
+          printWindow.document.write(`
+            <html>
+              <head><title>Print PDF</title></head>
+              <body>
+                <img src="${canvas.toDataURL()}" style="width:100%; height:auto;" />
+              </body>
+            </html>
+          `);
+  
+          printWindow.document.close();
+  
+          // Add onload event to trigger print after content is fully loaded
+          printWindow.onload = () => {
+            printWindow.focus(); // Focus on the print window
+            printWindow.print(); // Trigger the print dialog
           };
-        };
-      });
+        });
     });
   };
+  
   
 
   const handleCloseSnackbar = () => {
@@ -132,12 +131,35 @@ const EVisaPortal = () => {
   return (
     <Box>
       <Container>
-        <Box sx={{ border: "1px solid #1D2D7A", borderRadius: "8px", height: { xs: "auto", sm: "auto" }, px: { xs: "20px", sm: "100px" }, mt: "20px", py: "30px" }}>
+        <Box
+          sx={{
+            border: "1px solid #1D2D7A",
+            borderRadius: "8px",
+            height: { xs: "auto", sm: "auto" },
+            px: { xs: "20px", sm: "100px" },
+            mt: "20px",
+            py: "30px",
+          }}
+        >
           {pdfUrl ? (
             <Box>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                <Typography sx={{ color: "black", fontWeight: 600, fontSize: { xs: "18px", sm: "20px" }, textAlign: "center" }}>
-                  Your visa is ready to print!
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "black",
+                    fontWeight: 600,
+                    fontSize: { xs: "18px", sm: "20px" },
+                    textAlign: "center",
+                  }}
+                >
+                  Your visa is ready to view!
                 </Typography>
                 <Button
                   onClick={handlePrint}
@@ -161,11 +183,26 @@ const EVisaPortal = () => {
             <Box>
               {/* Header Section */}
               <Box sx={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                <Box sx={{ bgcolor: "#4064AE", height: "45px", width: "45px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Box
+                  sx={{
+                    bgcolor: "#4064AE",
+                    height: "45px",
+                    width: "45px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <RiVisaFill style={{ color: "white", fontSize: "25px" }} />
                 </Box>
                 <Box sx={{ borderBottom: "1px solid #4064AE", width: "100%" }}>
-                  <Typography sx={{ color: "#4064AE", fontSize: { xs: "18px", sm: "22px" } }}>
+                  <Typography
+                    sx={{
+                      color: "#4064AE",
+                      fontSize: { xs: "18px", sm: "22px" },
+                    }}
+                  >
                     Portal of Serbia e-Visa
                   </Typography>
                 </Box>
@@ -176,7 +213,9 @@ const EVisaPortal = () => {
                 <form onSubmit={handleSubmit}>
                   <Box sx={{ display: "flex", flexDirection: "column" }}>
                     <label style={{ color: "black", fontSize: "15px" }}>
-                      <span style={{ color: "red", paddingRight: "5px" }}>*</span>
+                      <span style={{ color: "red", paddingRight: "5px" }}>
+                        *
+                      </span>
                       e-Visa ID
                     </label>
                     <input
@@ -194,12 +233,25 @@ const EVisaPortal = () => {
                       }}
                     />
                     {error && (
-                      <Typography sx={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                      <Typography
+                        sx={{
+                          color: "red",
+                          fontSize: "12px",
+                          marginTop: "5px",
+                        }}
+                      >
                         {error}
                       </Typography>
                     )}
                   </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", mt: "50px" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      mt: "50px",
+                    }}
+                  >
                     <Button
                       type="submit"
                       sx={{
@@ -218,7 +270,10 @@ const EVisaPortal = () => {
                       disabled={loading}
                     >
                       {loading ? (
-                        <CircularProgress size={24} sx={{ color: "white", position: "absolute" }} />
+                        <CircularProgress
+                          size={24}
+                          sx={{ color: "black", position: "absolute" }}
+                        />
                       ) : (
                         <>
                           Confirm <IoIosArrowForward />
@@ -233,8 +288,17 @@ const EVisaPortal = () => {
         </Box>
       </Container>
 
-      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
-        <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} sx={{ width: "100%" }}>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={error ? "error" : "success"}
+          sx={{ width: "100%" }}
+        >
           {error || success}
         </Alert>
       </Snackbar>
