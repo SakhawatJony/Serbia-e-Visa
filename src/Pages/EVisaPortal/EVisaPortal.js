@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { RiVisaFill } from "react-icons/ri";
 import { IoIosArrowForward } from "react-icons/io";
+import { Helmet } from "react-helmet";
 
 const EVisaPortal = () => {
   const [visaID, setVisaID] = useState(""); // e-Visa ID input
@@ -146,6 +147,13 @@ const EVisaPortal = () => {
 
   return (
     <Box>
+         <Helmet>
+      <title>Serbia Visa Status and Information</title>
+      <meta name="description" content="Check the latest Serbia visa status, Serbia visa application process, and requirements for travel." />
+      <meta name="keywords" content="Serbia visa, visa status, Serbia visa application, Serbia travel visa, visa requirements" />
+      <meta property="og:title" content="Serbia Visa Status and Information" />
+      <meta property="og:description" content="Check the latest Serbia visa status, Serbia visa application process, and requirements for travel." />
+    </Helmet>
       <Container>
         <Box
           sx={{
